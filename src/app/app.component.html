@@ -1,0 +1,13 @@
+<form class="example-form">
+  <mat-form-field class="example-full-width" style="width: 50%;">
+    <input matInput placeholder="Where is your firestation" (ngModelChange)="valuechange($event)" [(ngModel)]="searchInput"
+      autocomplete="off" [matAutocomplete]="auto" name="searchField">
+  </mat-form-field>
+  <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSelectionChanged($event)">
+    <mat-option *ngFor="let item of autoCompleteArray" [value]="item.mainText">
+        <span>{{item.mainText}}</span><br>
+        <small>{{item.secondaryText}}</small>     
+    </mat-option>
+  </mat-autocomplete>
+</form>
+<div #mapContainer id="map"></div>
