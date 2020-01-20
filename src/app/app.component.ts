@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef, OnInit, AfterViewInit } from '@angular/core';
 import { AutoCompleteModel } from './autocompletemodel';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import * as _ from 'lodash';
 
 
 @Component({
@@ -208,9 +209,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     controlUI.style.marginBottom = '22px';
     controlUI.style.textAlign = 'center';
     controlUI.style.width = '40px';
-    controlUI.style.paddingRight = '10px';
+    controlUI.style.marginRight = '10px';
+    controlUI.style.borderRadius = '20px';
+    controlUI.style.backgroundColor = '#2C71D4';
     controlUI.title = 'Delete Polygon';
-    controlUI.src = './assets/ic_trash_primary.png';
+    controlUI.src = './assets/ic_trash_white.png';
     controlDiv.appendChild(controlUI);
 
     this.map = new google.maps.Map(this.gmap.nativeElement, this.mapOptions);
@@ -241,6 +244,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
   onSelectionChanged(event: MatAutocompleteSelectedEvent) {
+    console.log('onSelectionChanged');
     const selectedItem = this.autoCompleteArray.filter(x => x.mainText === event.option.value)[0];
     this.autocompletetoken = null;
     const placesService = new google.maps.places.PlacesService(this.map);
@@ -271,12 +275,24 @@ export class AppComponent implements OnInit, AfterViewInit {
     );
 
   }
+
+  searchString = "";
+
+  debouncedValueChange = _.debounce(() => this.getAutoCompleteFromGoogle(this.searchString), 500, {trailing: true});
+
+
   valuechange(event: any) {
+    console.log('valuechange');
     console.log(event);
     if (event === '') {
       this.autoCompleteArray = [];
       return;
     }
+    
+    this.searchString = event;
+    this.debouncedValueChange();
+  }
+  getAutoCompleteFromGoogle(event: any) {
     if (!this.autocompletetoken) {
       this.autocompletetoken = new google.maps.places.AutocompleteSessionToken();
     }
@@ -285,20 +301,22 @@ export class AppComponent implements OnInit, AfterViewInit {
       input: event,
       sessionToken: this.autocompletetoken,
     }, result => {
-      this.autoCompleteArray = [];
+      console.log('autocomplete Service', result);
+      const suggestions = [];
       if (result) {
-        this.displaySuggestions(result);
+        this.displaySuggestions(result, suggestions);
       }
+      this.autoCompleteArray = suggestions;
     });
   }
-  displaySuggestions(result: any) {
+  displaySuggestions(result: any, suggestions: any[]) {
     console.log('displaySuggestions');
     result.forEach(item => {
       const acItem = new AutoCompleteModel();
       acItem.mainText = item.structured_formatting.main_text;
       acItem.secondaryText = item.structured_formatting.secondary_text;
       acItem.placeId = item.place_id;
-      this.autoCompleteArray.push(acItem);
+      suggestions.push(acItem);
     });
   }
 }
